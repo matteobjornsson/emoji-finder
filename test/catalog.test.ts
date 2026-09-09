@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Catalog, loadCatalog } from "../src/catalog.js";
 import { buildPrompt } from "../src/finder.js";
-import type { FinderConfig } from "../src/config.js";
 
 test("catalog validates exact names, relevance order, and aliases", () => {
   const catalog = Catalog.fromSlack({
@@ -20,9 +19,8 @@ test("catalog validates exact names, relevance order, and aliases", () => {
 });
 
 test("prompt cache prefix stays identical across queries and API ordering", () => {
-  const config: FinderConfig = { apiKey: "unused", model: "test" };
-  const first = buildPrompt(Catalog.fromSlack({ b: "b.png", a: "a.png" }), [{ role: "user", content: "first query" }], config);
-  const second = buildPrompt(Catalog.fromSlack({ a: "a.png", b: "b.png" }), [{ role: "user", content: "first query" }, { role: "assistant", content: ":a:" }, { role: "user", content: "another query" }], config);
+  const first = buildPrompt(Catalog.fromSlack({ b: "b.png", a: "a.png" }), [{ role: "user", content: "first query" }], "test-model");
+  const second = buildPrompt(Catalog.fromSlack({ a: "a.png", b: "b.png" }), [{ role: "user", content: "first query" }, { role: "assistant", content: ":a:" }, { role: "user", content: "another query" }], "test-model");
   assert.deepEqual(first.system, second.system);
   assert.deepEqual(first.tools, second.tools);
   assert.notDeepEqual(first.messages, second.messages);

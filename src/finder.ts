@@ -1,5 +1,4 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { createHash } from "node:crypto";
 import { Catalog } from "./catalog.js";
 import type { FinderConfig } from "./config.js";
 
@@ -19,9 +18,9 @@ twenty, and "the best one" asks for a single strongest match. When asked to narr
 or choose among earlier suggestions, you may reuse them; otherwise favor new
 matches. Return your selections using suggest_emoji.`;
 
-export function buildPrompt(catalog: Catalog, messages: Anthropic.MessageParam[], config: FinderConfig) {
+export function buildPrompt(catalog: Catalog, messages: Anthropic.MessageParam[], model: string) {
   return {
-    model: config.model,
+    model,
     max_tokens: 4096,
     system: [{
       type: "text" as const,
@@ -66,7 +65,7 @@ export async function findEmoji(
   if (catalog.names.length === 0) return "This workspace has no custom emoji to search.";
 
   const client = new Anthropic({ apiKey: config.apiKey, maxRetries: 0, timeout: 90_000 });
-  const prompt = buildPrompt(catalog, messages, config);
+  const prompt = buildPrompt(catalog, messages, config.model);
   const started = Date.now();
   const response = await client.messages.create(prompt);
   if (response.stop_reason === "max_tokens") throw new Error("Model response was truncated");
@@ -82,9 +81,6 @@ export async function findEmoji(
     catalogSize: catalog.names.length,
     returned: picks.length,
     latencyMs: Date.now() - started,
-    cachePrefixId: createHash("sha256").update(JSON.stringify({
-      tools: prompt.tools, system: prompt.system,
-    })).digest("hex").slice(0, 16),
     usage: response.usage,
   }));
   return picks.length ? picks.map((name) => `:${name}:`).join(" ") :

@@ -1,7 +1,7 @@
 import type { EmojiRequest } from "./request.js";
 
 interface Submission {
-  accepted: Promise<string>;
+  accepted: Promise<void>;
   expiresAt: number;
 }
 
@@ -9,7 +9,7 @@ export class Requests {
   private readonly recent = new Map<string, Submission>();
 
   constructor(
-    private readonly submit: (request: EmojiRequest) => Promise<string>,
+    private readonly submit: (request: EmojiRequest) => Promise<void>,
     private readonly now: () => number = Date.now,
   ) {}
 

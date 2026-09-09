@@ -17,16 +17,11 @@ report("catalog_loaded", { size: catalog.names.length });
 const workflowTask = required("EMOJI_FINDER_WORKFLOW_TASK");
 const render = new Render();
 const requests = new Requests(async (request) => {
-  // Bound HTTP acceptance to Slack's acknowledgment window, not the task's lifetime.
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 2500);
-  try {
-    const run = await render.workflows.startTask(workflowTask, [request, catalog.entries], controller.signal);
-    report("request_submitted", { requestId: request.requestId, runId: run.taskRunId });
-    return run.taskRunId;
-  } finally {
-    clearTimeout(timer);
-  }
+  // Submit within Slack's acknowledgment window.
+  const run = await render.workflows.startTask(
+    workflowTask, [request, catalog.entries], AbortSignal.timeout(2500),
+  );
+  report("request_submitted", { requestId: request.requestId, runId: run.taskRunId });
 });
 
 const { app } = createApp({
