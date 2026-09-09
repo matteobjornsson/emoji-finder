@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=https://render.com/schema/render.yaml.json
+# Create the Workflow separately in Render; see README.md.
+services:
+  - type: web
+    name: emoji-finder-slack
+    runtime: node
+    plan: starter
+    numInstances: 1
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: SLACK_BOT_TOKEN
+        sync: false
+      - key: SLACK_SIGNING_SECRET
+        sync: false
+      - key: SLACK_TEAM_ID
+        sync: false
+      - key: RENDER_API_KEY
+        sync: false
+      - key: EMOJI_FINDER_WORKFLOW_TASK
+        sync: false

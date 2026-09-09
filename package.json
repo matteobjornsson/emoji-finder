@@ -1,0 +1,29 @@
+{
+  "name": "emoji-finder",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json",
+    "test": "tsx --test test/*.test.ts",
+    "start": "node dist/web.js",
+    "start:workflow": "node dist/workflow.js",
+    "dev": "op run -- tsx watch src/web.ts",
+    "dev:workflow": "op run -- render workflows dev --env-file= -- tsx src/workflow.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.124.0",
+    "@renderinc/sdk": "1.0.0",
+    "@slack/bolt": "5.1.0",
+    "@slack/web-api": "8.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "tsx": "4.23.13",
+    "typescript": "7.0.2"
+  }
+}
