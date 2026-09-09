@@ -6,33 +6,29 @@ Built with TypeScript, Slack Bolt, Anthropic, and Render Workflows. A web servic
 
 ## Run locally
 
-Install [Nix](https://nixos.org/download/) with flakes enabled, [direnv](https://direnv.net/docs/installation.html) with its shell hook, and the [1Password CLI](https://developer.1password.com/docs/cli/get-started/). Nix supplies Node.js 24 and the Render CLI.
+Requires **Node.js 24** and the [Render CLI](https://render.com/docs/cli). Alternatively, the included Nix development shell supplies both (`direnv allow` or `nix develop ./nix#dev`).
 
 ```sh
-direnv allow
 npm ci
 ```
 
-Create a Slack app from [slack-manifest.json](slack-manifest.json) in [Slack app settings](https://api.slack.com/apps), then install it in a test workspace. Store its bot token, signing secret, and your Anthropic key in 1Password.
+Create a Slack app from [slack-manifest.json](slack-manifest.json) in [Slack app settings](https://api.slack.com/apps), then install it in a test workspace.
 
-Create the ignored `.envrc.local` file, replacing the references and workspace ID:
+Provide these environment variables to the processes that need them, using your preferred local environment setup:
 
-```sh
-export SLACK_BOT_TOKEN='op://VAULT/BOT_TOKEN_ITEM/credential'
-export SLACK_SIGNING_SECRET='op://VAULT/SIGNING_SECRET_ITEM/credential'
-export SLACK_TEAM_ID='YOUR_TEST_WORKSPACE_ID'
-export EMOJI_FINDER_API_KEY='op://VAULT/ANTHROPIC_KEY_ITEM/credential'
-export EMOJI_FINDER_MODEL='claude-haiku-4-5-20251001'
-export RENDER_USE_LOCAL_DEV=true
-export EMOJI_FINDER_WORKFLOW_TASK=fulfillRequest
-```
+| Variable | Value | Used by |
+| --- | --- | --- |
+| `SLACK_BOT_TOKEN` | Slack Bot User OAuth Token (`xoxb-…`) | Both |
+| `SLACK_TEAM_ID` | Slack workspace ID (`T…`) | Both |
+| `SLACK_SIGNING_SECRET` | App signing secret from Slack's Basic Information page | Web |
+| `EMOJI_FINDER_API_KEY` | Anthropic API key | Workflow |
+| `EMOJI_FINDER_MODEL` | Anthropic model ID, e.g. `claude-haiku-4-5-20251001` | Workflow |
+| `EMOJI_FINDER_WORKFLOW_TASK` | `fulfillRequest` locally; `WORKFLOW-SLUG/fulfillRequest` when deployed | Web |
+| `RENDER_API_KEY` | Render API key for submitting workflow tasks; required only when deployed | Web |
 
-Keep credential values in 1Password. The development commands resolve references through `op run`; the app reads only environment variables.
-
-Reload the environment and start the workflow server:
+For local development, also set `RENDER_USE_LOCAL_DEV=true` in the web process. Start the workflow server:
 
 ```sh
-direnv reload
 npm run dev:workflow
 ```
 
@@ -48,14 +44,14 @@ Expose port **3000** through an HTTPS tunnel. In Slack's **Event Subscriptions**
 
 Deploy both resources from the same repository with `NODE_VERSION=24` and build command `npm ci --include=dev && npm run build`:
 
-| Resource | Start command | Required environment variables |
-| --- | --- | --- |
-| Workflow | `npm run start:workflow` | `SLACK_BOT_TOKEN`, `SLACK_TEAM_ID`, `EMOJI_FINDER_API_KEY`, `EMOJI_FINDER_MODEL` |
-| Web service | `npm start` | `SLACK_BOT_TOKEN`, `SLACK_TEAM_ID`, `SLACK_SIGNING_SECRET`, `RENDER_API_KEY`, `EMOJI_FINDER_WORKFLOW_TASK` |
+| Resource | Start command |
+| --- | --- |
+| Workflow | `npm run start:workflow` |
+| Web service | `npm start` |
 
 [render.yaml](render.yaml) configures the web service. Create the [Workflow separately](https://render.com/docs/workflows), then set the web service's task identifier to `WORKFLOW-SLUG/fulfillRequest`.
 
-Supply actual credential values through Render's Environment settings and choose **Save and rebuild** after changes. Omit local development variables. `RENDER_API_KEY` authenticates workflow submissions; `EMOJI_FINDER_API_KEY` authenticates Anthropic requests.
+Set each resource's variables from the table above in Render's Environment settings and choose **Save and rebuild** after changes. Omit `RENDER_USE_LOCAL_DEV` on Render.
 
 Once deployed, update Slack's Request URL to the web service's `/slack/events` endpoint. `/healthz` returns `200` when the web service is ready.
 

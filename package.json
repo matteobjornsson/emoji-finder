@@ -12,8 +12,8 @@
     "test": "tsx --test test/*.test.ts",
     "start": "node dist/web.js",
     "start:workflow": "node dist/workflow.js",
-    "dev": "op run -- tsx watch src/web.ts",
-    "dev:workflow": "op run -- render workflows dev --env-file= -- tsx src/workflow.ts"
+    "dev": "tsx watch src/web.ts",
+    "dev:workflow": "render workflows dev --env-file= -- tsx src/workflow.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.124.0",
