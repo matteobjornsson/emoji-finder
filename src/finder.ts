@@ -22,6 +22,7 @@ export function buildPrompt(catalog: Catalog, messages: Anthropic.MessageParam[]
   return {
     model,
     max_tokens: 4096,
+    thinking: { type: "disabled" as const },
     system: [{
       type: "text" as const,
       text: `${instructions}\n\n<catalog>\n${catalog.block}\n</catalog>`,
